@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const { exec } = require('child_process');
 
@@ -36,6 +36,19 @@ app.on('activate', function () {
     }
 });
 
+ipcMain.handle('check-device', async () => {
+    return new Promise((resolve, reject) => {
+        exec('adb devices', (error, stdout, stderr) => {
+            if (error) {
+                reject(stderr);
+            } else {
+                const devices = stdout.split('\n').slice(1).map(line => line.split('\t')[0]).filter(line => line);
+                resolve(devices.length > 0);
+            }
+        });
+    });
+});
+
 ipcMain.handle('fetch-packages', async () => {
     return new Promise((resolve, reject) => {
         exec('adb shell pm list packages', (error, stdout, stderr) => {
@@ -55,6 +68,18 @@ ipcMain.handle('uninstall-package', async (event, packageName) => {
                 reject(stderr);
             } else {
                 resolve(stdout);
+            }
+        });
+    });
+});
+
+ipcMain.handle('get-device-name', async () => {
+    return new Promise((resolve, reject) => {
+        exec('adb shell getprop ro.product.model', (error, stdout, stderr) => {
+            if (error) {
+                reject(stderr);
+            } else {
+                resolve(stdout.trim());
             }
         });
     });

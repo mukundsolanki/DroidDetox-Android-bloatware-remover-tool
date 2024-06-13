@@ -4,11 +4,12 @@
     <title>Electron ADB App</title>
 </head>
 <body>
-    <h1>Android Package Manager</h1>
+    <h1 id="device-name">No device connected</h1>
+    <button id="refresh">Refresh</button>
     <button id="fetch-packages">Fetch Packages</button>
-    <button id="go-to-install">Go to Install</button>
     <input type="text" id="search-box" placeholder="Search packages">
     <ul id="package-list"></ul>
+    <p id="status"></p>
     <script src="renderer.js"></script>
 </body>
 </html>

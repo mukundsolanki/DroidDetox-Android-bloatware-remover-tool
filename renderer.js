@@ -1,9 +1,27 @@
 const { ipcRenderer } = require('electron');
 let packages = [];
 
+document.addEventListener('DOMContentLoaded', async () => {
+    refreshDeviceStatus();
+});
+
+document.getElementById('refresh').addEventListener('click', async () => {
+    refreshDeviceStatus();
+});
+
 document.getElementById('fetch-packages').addEventListener('click', async () => {
-    packages = await ipcRenderer.invoke('fetch-packages');
-    displayPackages(packages);
+    try {
+        const deviceConnected = await ipcRenderer.invoke('check-device');
+        if (deviceConnected) {
+            packages = await ipcRenderer.invoke('fetch-packages');
+            displayPackages(packages);
+        } else {
+            document.getElementById('status').textContent = 'No devices connected. Please connect your device.';
+            document.getElementById('device-name').textContent = 'No device connected';
+        }
+    } catch (error) {
+        alert(`Error: ${error}`);
+    }
 });
 
 document.getElementById('search-box').addEventListener('input', (event) => {
@@ -44,5 +62,22 @@ async function uninstallPackage(packageName) {
         displayPackages(packages);
     } catch (error) {
         alert(`Failed to uninstall: ${packageName}\nError: ${error}`);
+    }
+}
+
+async function refreshDeviceStatus() {
+    try {
+        const deviceConnected = await ipcRenderer.invoke('check-device');
+        if (deviceConnected) {
+            const deviceName = await ipcRenderer.invoke('get-device-name');
+            document.getElementById('device-name').textContent = `Connected to: ${deviceName}`;
+            document.getElementById('status').textContent = '';
+        } else {
+            document.getElementById('device-name').textContent = 'No device connected';
+            document.getElementById('status').textContent = 'No devices connected. Please connect your device.';
+        }
+    } catch (error) {
+        console.error('Error refreshing device status:', error);
+        alert(`Error refreshing device status: ${error}`);
     }
 }
